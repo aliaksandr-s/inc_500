@@ -1,9 +1,40 @@
-function component() {
-  const element = document.createElement('div');
+import Datamap from 'datamaps';
+import dataset from './data.json';
+import * as d3 from 'd3';
 
-  element.innerHTML = "Hello"
+const root = document.getElementById('root');
 
-  return element;
-}
+const onlyValues = Object.values(dataset).map(val => val.revenueGrowth);
 
-document.body.appendChild(component());
+const minVal = Math.min(...onlyValues);
+const maxVal = Math.max(...onlyValues);
+
+const paletteScale = d3
+  .scaleLinear()
+  .domain([minVal, maxVal])
+  .range(['#EFEFFF', '#02386F']); // blue color
+
+Object.entries(dataset).forEach(([key, val]) => {
+  val['fillColor'] = paletteScale(val.revenueGrowth);
+});
+
+console.log(minVal, maxVal);
+
+const popupTemplate = (geo, data) => `
+  <div class="hoverinfo">
+    2018 revenue growth ${geo.properties.name}:
+    <br/>
+    <strong>
+      ${data.revenueGrowth}
+    </strong>
+  </div>
+`
+
+new Datamap({
+  element: root,
+  scope: 'usa',
+  data: dataset,
+  geographyConfig: {
+    popupTemplate
+  }
+});
